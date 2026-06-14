@@ -1,0 +1,110 @@
+"""SQLite persistence helpers for Cyber Lab Control Panel."""
+
+from __future__ import annotations
+
+import sqlite3
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Optional
+
+DATABASE_PATH = Path("data/cyber_lab.db")
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _connect() -> sqlite3.Connection:
+    DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    connection = sqlite3.connect(DATABASE_PATH)
+    connection.row_factory = sqlite3.Row
+    return connection
+
+
+def init_db() -> None:
+    with _connect() as connection:
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS targets (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                target TEXT NOT NULL,
+                target_type TEXT NOT NULL CHECK(target_type IN ('ip', 'domain', 'url', 'localhost')),
+                authorized INTEGER NOT NULL DEFAULT 0 CHECK(authorized IN (0, 1)),
+                scope_notes TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            """
+        )
+        connection.commit()
+
+
+def _row_to_target(row: sqlite3.Row) -> dict[str, Any]:
+    return {
+        "id": row["id"],
+        "name": row["name"],
+        "target": row["target"],
+        "target_type": row["target_type"],
+        "authorized": bool(row["authorized"]),
+        "scope_notes": row["scope_notes"],
+        "created_at": row["created_at"],
+        "updated_at": row["updated_at"],
+    }
+
+
+def create_target(
+    *,
+    name: str,
+    target: str,
+    target_type: str,
+    authorized: bool = False,
+    scope_notes: Optional[str] = None,
+) -> dict[str, Any]:
+    now = _utc_now()
+    with _connect() as connection:
+        cursor = connection.execute(
+            """
+            INSERT INTO targets (name, target, target_type, authorized, scope_notes, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (name.strip(), target, target_type, int(authorized), scope_notes, now, now),
+        )
+        connection.commit()
+        row = connection.execute("SELECT * FROM targets WHERE id = ?", (cursor.lastrowid,)).fetchone()
+    return _row_to_target(row)
+
+
+def list_targets() -> list[dict[str, Any]]:
+    with _connect() as connection:
+        rows = connection.execute("SELECT * FROM targets ORDER BY id ASC").fetchall()
+    return [_row_to_target(row) for row in rows]
+
+
+def get_target(target_id: int) -> Optional[dict[str, Any]]:
+    with _connect() as connection:
+        row = connection.execute("SELECT * FROM targets WHERE id = ?", (target_id,)).fetchone()
+    if row is None:
+        return None
+    return _row_to_target(row)
+
+
+def update_target_authorization(target_id: int, authorized: bool) -> Optional[dict[str, Any]]:
+    now = _utc_now()
+    with _connect() as connection:
+        cursor = connection.execute(
+            "UPDATE targets SET authorized = ?, updated_at = ? WHERE id = ?",
+            (int(authorized), now, target_id),
+        )
+        if cursor.rowcount == 0:
+            return None
+        connection.commit()
+        row = connection.execute("SELECT * FROM targets WHERE id = ?", (target_id,)).fetchone()
+    return _row_to_target(row)
+
+
+def delete_target(target_id: int) -> bool:
+    with _connect() as connection:
+        cursor = connection.execute("DELETE FROM targets WHERE id = ?", (target_id,))
+        connection.commit()
+    return cursor.rowcount > 0

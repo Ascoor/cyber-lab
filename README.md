@@ -11,7 +11,9 @@ Cyber Lab Control Panel هو مشروع محلي داخل WSL2 Ubuntu لتنظي
 - Backend يعمل عبر FastAPI.
 - endpoint `/` موجود للتحقق العام.
 - endpoint `/health` موجود للتحقق السريع.
-- ملفات موديولات الفحص موجودة مبدئيًا داخل `backend/app/modules/`.
+- نظام Target Management مضاف لإدارة الأهداف محليًا قبل أي فحص.
+- SQLite يستخدم ملف `data/cyber_lab.db` محليًا ويُنشئ جدول `targets` تلقائيًا عند تشغيل التطبيق.
+- ملفات موديولات الفحص موجودة مبدئيًا داخل `backend/app/modules/` دون إضافة فحوصات جديدة في مرحلة Target Management.
 - ملف `backend/app/modules/nmap_scan.py` موجود لكنه فارغ في المراجعة الحالية، لذلك لا يوجد تنفيذ Nmap فعلي موثق بعد.
 - ملف `docker-compose.yml` فارغ حاليًا، وسيتم ضبطه في مرحلة Docker Compose لاحقًا.
 
@@ -125,3 +127,107 @@ curl http://localhost:8000/health
 ## Docker Compose
 
 `docker-compose.yml` موجود لكنه فارغ حاليًا، ولا يعتبر طريقة تشغيل جاهزة. سيتم ضبطه في المرحلة 10 فقط بعد استقرار Backend والتقارير والسجلات.
+
+## Target Management - المرحلة 1
+
+تمت إضافة Target Management كمرحلة مستقلة لإدارة الأهداف المصرح بها قبل تشغيل أي فحص. هذه المرحلة لا تشغل Nmap أو ZAP أو MobSF أو أي أداة خارجية، ولا تضيف أي وظيفة فحص جديدة.
+
+### التخزين المحلي
+
+تستخدم المرحلة الحالية SQLite بسيطًا داخل:
+
+```text
+data/cyber_lab.db
+```
+
+يتم إنشاء جدول `targets` تلقائيًا عند تشغيل FastAPI ويحتوي على الحقول الأساسية التالية:
+
+- `id`
+- `name`
+- `target`
+- `target_type`
+- `authorized`
+- `scope_notes`
+- `created_at`
+- `updated_at`
+
+### صيغ الأهداف المقبولة
+
+يقبل النظام فقط:
+
+- IPv4 واحد مثل `127.0.0.1`.
+- Domain واحد مثل `example.com`.
+- URL واحد يبدأ بـ `http://` أو `https://`.
+- `localhost`.
+
+ويرفض صراحةً:
+
+- CIDR مثل `192.168.1.0/24`.
+- IP ranges مثل `192.168.1.1-192.168.1.50`.
+- Wildcards مثل `*.example.com`.
+- بروتوكولات URL غير `http` و`https` مثل `ftp` و`file` و`javascript`.
+- الرموز الخطيرة في shell مثل `;` و`&` و`|` و`$` وbackticks و`>` و`<` والأسطر الجديدة.
+
+### أمثلة تشغيل واختبار
+
+تشغيل السيرفر:
+
+```bash
+uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
+```
+
+فحص الصحة:
+
+```bash
+curl http://localhost:8000/health
+```
+
+إنشاء target صحيح:
+
+```bash
+curl -X POST http://localhost:8000/targets \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Localhost Test","target":"127.0.0.1","authorized":true,"scope_notes":"Local machine only"}'
+```
+
+عرض كل الأهداف:
+
+```bash
+curl http://localhost:8000/targets
+```
+
+عرض target واحد:
+
+```bash
+curl http://localhost:8000/targets/1
+```
+
+تغيير حالة التصريح:
+
+```bash
+curl -X PATCH http://localhost:8000/targets/1/authorization \
+  -H "Content-Type: application/json" \
+  -d '{"authorized":false}'
+```
+
+حذف target:
+
+```bash
+curl -X DELETE http://localhost:8000/targets/1
+```
+
+اختبار رفض CIDR:
+
+```bash
+curl -X POST http://localhost:8000/targets \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Bad CIDR","target":"192.168.1.0/24","authorized":true,"scope_notes":"Should be rejected"}'
+```
+
+اختبار رفض wildcard:
+
+```bash
+curl -X POST http://localhost:8000/targets \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Bad Wildcard","target":"*.example.com","authorized":true,"scope_notes":"Should be rejected"}'
+```
