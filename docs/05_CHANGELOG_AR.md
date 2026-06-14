@@ -1,5 +1,14 @@
 # سجل التغييرات
 
+## 0.2.0 - Target Management
+
+- إضافة نظام إدارة أهداف مستقل قبل تشغيل أي فحص.
+- إضافة SQLite محلي داخل `data/cyber_lab.db` وجدول `targets`.
+- إضافة endpoints: `POST /targets` و`GET /targets` و`GET /targets/{target_id}` و`PATCH /targets/{target_id}/authorization` و`DELETE /targets/{target_id}`.
+- إضافة تحقق صارم للأهداف يقبل IPv4 واحدًا أو domain واحدًا أو URL يبدأ بـ `http://` أو `https://` أو `localhost` فقط.
+- رفض CIDR وIP ranges وwildcards والرموز الخطيرة مثل `;` و`&` و`|` و`$` وbackticks و`>` و`<` والأسطر الجديدة.
+- الإبقاء على Target Management مستقلًا دون ربطه بأي فحص أو أداة خارجية.
+
 ## 0.1.0 - التأسيس الأولي
 
 - إنشاء هيكل المشروع.
