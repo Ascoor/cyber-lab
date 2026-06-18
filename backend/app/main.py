@@ -9,13 +9,14 @@ from backend.app.database import (
     list_targets,
     update_target_authorization,
 )
-from backend.app.models import TargetAuthorizationUpdate, TargetCreate
+from backend.app.models import NmapBasicScanRequest, TargetAuthorizationUpdate, TargetCreate
+from backend.app.modules.nmap_scan import run_basic_nmap_scan_for_target
 from backend.app.modules.target_validation import validate_target_input
 
 app = FastAPI(
     title="Cyber Lab Control Panel",
     description="Local defensive cybersecurity testing dashboard for authorized assets only.",
-    version="0.2.0",
+    version="0.3.0",
 )
 
 app.add_middleware(
@@ -101,3 +102,23 @@ def delete_target_endpoint(target_id: int):
     if not deleted:
         raise HTTPException(status_code=404, detail="Target not found.")
     return {"success": True}
+
+@app.post("/scans/nmap/basic")
+def run_nmap_basic_scan_endpoint(payload: NmapBasicScanRequest):
+    target = get_target(payload.target_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="Target not found.")
+
+    if not target["authorized"]:
+        raise HTTPException(status_code=403, detail="Target is not authorized for scanning.")
+
+    validation = validate_target_input(target["target"])
+    if not validation["valid"]:
+        raise HTTPException(status_code=400, detail=validation["error"])
+
+    scan_result = run_basic_nmap_scan_for_target(target)
+    if not scan_result["success"] and not scan_result["command_used"]:
+        raise HTTPException(status_code=400, detail=scan_result["stderr"])
+
+    return scan_result
+

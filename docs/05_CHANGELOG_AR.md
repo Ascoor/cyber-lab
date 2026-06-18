@@ -1,5 +1,15 @@
 # سجل التغييرات
 
+## 0.3.0 - Nmap Basic Scan
+
+- إضافة endpoint `POST /scans/nmap/basic`.
+- ربط Nmap بالأهداف المخزنة فقط عبر `target_id`.
+- رفض `authorized=false` قبل تشغيل Nmap.
+- منع قبول target مباشر من المستخدم داخل endpoint الفحص.
+- حفظ التقارير داخل `reports/nmap_basic/`.
+- تشغيل الأمر الثابت فقط `nmap -sV -T3 --top-ports 100 <target>`.
+- عدم استخدام `shell=True`.
+
 ## 0.2.0 - Target Management
 
 - إضافة نظام إدارة أهداف مستقل قبل تشغيل أي فحص.
