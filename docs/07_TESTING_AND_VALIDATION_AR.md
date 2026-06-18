@@ -311,3 +311,39 @@ curl http://localhost:8000/scans/1/report
 ```
 
 تنبيه: قيمة `scan_id` قد لا تكون `1` حسب محتوى قاعدة البيانات، لذلك يجب استخدام `scan_id` الناتج من تشغيل الفحص أو من `GET /scans`.
+
+## اختبارات 0.6.0 - Domain Archive Intelligence
+
+```bash
+python3 -m compileall backend/app
+```
+
+```bash
+rg "shell=True|os.system|eval|exec" backend/app || true
+```
+
+```bash
+curl http://localhost:8000/health
+```
+
+إنشاء target domain:
+
+```bash
+curl -X POST http://localhost:8000/targets \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Archive Domain Test","target":"ahmed-elsaidi.com","authorized":true,"scope_notes":"Archive lookup test"}'
+```
+
+تشغيل Domain Archive:
+
+```bash
+curl -X POST http://localhost:8000/scans/domain/archive \
+  -H "Content-Type: application/json" \
+  -d '{"target_id":4}'
+```
+
+اختبار رفض IP:
+
+1. أنشئ target بقيمة `127.0.0.1` مع `authorized=true`.
+2. شغل نفس endpoint باستخدام `target_id` الخاص به.
+3. تأكد أن الاستجابة `400` وتحتوي الرسالة: `Domain Archive Intelligence requires a domain or URL target.`

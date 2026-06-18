@@ -82,3 +82,39 @@
 - يظهر في Scan History داخل الواجهة.
 - يمكن عرض تقريره من `/scans/{scan_id}/report`.
 - يمنع path traversal عند قراءة التقرير.
+
+## معيار تقرير Domain Archive Intelligence
+
+يحفظ موديول Domain Archive Intelligence تقرير JSON داخل `reports/domain_archive/` لكل هدف domain/url مصرح. التقرير قراءة فقط ولا يحتوي على أسرار أو tokens، ولا ينتج عن scraping أو brute force.
+
+الحقول الأساسية:
+
+```json
+{
+  "success": true,
+  "target_id": 4,
+  "original_target": "https://example.com/path",
+  "domain": "example.com",
+  "target_type": "url",
+  "scan_type": "domain_archive",
+  "started_at": "2026-06-18T12:00:00+00:00",
+  "finished_at": "2026-06-18T12:00:01+00:00",
+  "summary": "Domain Archive Intelligence report built for example.com.",
+  "current_dns": {
+    "resolved": true,
+    "hostname": "example.com",
+    "aliases": [],
+    "ipv4_addresses": ["93.184.216.34"],
+    "error": null
+  },
+  "source_links": {
+    "wayback_url": "https://web.archive.org/web/*/example.com",
+    "crtsh_url": "https://crt.sh/?q=example.com",
+    "rdap_url": "https://rdap.org/domain/example.com",
+    "whoisxml_history_note": "WHOIS history may require a paid API such as WhoisXML API or DomainTools.",
+    "whoisfreaks_dns_history_url": "https://whoisfreaks.com/tools/dns/history/lookup",
+    "whoisfreaks_whois_history_url": "https://whoisfreaks.com/tools/whois/history/lookup"
+  },
+  "report_file": "reports/domain_archive/target_4_example.com_2026-06-18T120000_000000Z.json"
+}
+```

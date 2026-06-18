@@ -17,7 +17,12 @@ from backend.app.database import (
     list_targets,
     update_target_authorization,
 )
-from backend.app.models import NmapBasicScanRequest, TargetAuthorizationUpdate, TargetCreate
+from backend.app.models import DomainArchiveLookupRequest, NmapBasicScanRequest, TargetAuthorizationUpdate, TargetCreate
+from backend.app.modules.domain_archive import (
+    DOMAIN_REQUIRED_MESSAGE,
+    run_domain_archive_lookup_for_target,
+    write_report as write_domain_archive_report,
+)
 from backend.app.modules.nmap_scan import run_basic_nmap_scan_for_target, write_report
 from backend.app.modules.target_validation import validate_target_input
 
@@ -27,7 +32,7 @@ FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend" / "simple_ui"
 app = FastAPI(
     title="Cyber Lab Control Panel",
     description="Local defensive cybersecurity testing dashboard for authorized assets only.",
-    version="0.5.0",
+    version="0.6.0",
 )
 
 app.add_middleware(
@@ -153,6 +158,42 @@ def run_nmap_basic_scan_endpoint(payload: NmapBasicScanRequest):
     scan_result["status"] = scan_record["status"]
     if scan_result.get("report_file"):
         write_report(scan_result)
+
+    return scan_result
+
+
+@app.post("/scans/domain/archive")
+def run_domain_archive_lookup_endpoint(payload: DomainArchiveLookupRequest):
+    target = get_target(payload.target_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="Target not found.")
+
+    if not target["authorized"]:
+        raise HTTPException(status_code=403, detail="Target is not authorized for scanning.")
+
+    if target.get("target_type") not in {"domain", "url"}:
+        raise HTTPException(status_code=400, detail=DOMAIN_REQUIRED_MESSAGE)
+
+    scan_result = run_domain_archive_lookup_for_target(target)
+    if not scan_result.get("success"):
+        raise HTTPException(status_code=400, detail=scan_result.get("summary") or DOMAIN_REQUIRED_MESSAGE)
+
+    scan_record = create_scan_record(
+        target_id=scan_result.get("target_id"),
+        target=scan_result.get("original_target") or target["target"],
+        target_type=scan_result.get("target_type"),
+        scan_type=scan_result.get("scan_type") or "domain_archive",
+        status="completed",
+        success=True,
+        report_file=scan_result.get("report_file"),
+        summary=scan_result.get("summary"),
+        started_at=scan_result.get("started_at"),
+        finished_at=scan_result.get("finished_at"),
+    )
+    scan_result["scan_id"] = scan_record["id"]
+    scan_result["status"] = scan_record["status"]
+    if scan_result.get("report_file"):
+        write_domain_archive_report(scan_result)
 
     return scan_result
 

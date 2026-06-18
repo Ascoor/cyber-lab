@@ -58,3 +58,12 @@
 - تنفيذ Nmap Basic مضبوط ومحدود بعد توثيق مواصفته.
 - توحيد report builder وحفظ التقارير وفق معيار التقارير.
 - إضافة Audit Log للفحوصات والرفض.
+
+## 0.6.0 - Domain Archive Intelligence
+
+- إضافة فحص أرشيفي للدومينات.
+- دعم domain/url targets فقط.
+- استخراج hostname من URL.
+- إضافة روابط Wayback وcrt.sh وRDAP ومصادر WHOIS/DNS History.
+- حفظ تقارير داخل `reports/domain_archive/`.
+- عدم استخدام scraping أو shell أو flags.

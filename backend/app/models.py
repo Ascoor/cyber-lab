@@ -24,3 +24,10 @@ class NmapBasicScanRequest(BaseModel):
 
     class Config:
         extra = "forbid"
+
+
+class DomainArchiveLookupRequest(BaseModel):
+    target_id: int
+
+    class Config:
+        extra = "forbid"
