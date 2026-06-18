@@ -269,3 +269,45 @@ name: Localhost UI
 ```bash
 rg "shell=True|os.system|eval|exec" backend/app || true
 ```
+
+## اختبارات 0.5.0 - Scan History + Reports Viewer
+
+```bash
+python3 -m compileall backend/app
+```
+
+```bash
+rg "shell=True|os.system|eval|exec" backend/app || true
+```
+
+```bash
+curl http://localhost:8000/health
+```
+
+```bash
+curl http://localhost:8000/ui
+```
+
+```bash
+curl http://localhost:8000/scans
+```
+
+```bash
+curl -X POST http://localhost:8000/scans/nmap/basic \
+  -H "Content-Type: application/json" \
+  -d '{"target_id":1}'
+```
+
+```bash
+curl http://localhost:8000/scans
+```
+
+```bash
+curl http://localhost:8000/scans/1
+```
+
+```bash
+curl http://localhost:8000/scans/1/report
+```
+
+تنبيه: قيمة `scan_id` قد لا تكون `1` حسب محتوى قاعدة البيانات، لذلك يجب استخدام `scan_id` الناتج من تشغيل الفحص أو من `GET /scans`.

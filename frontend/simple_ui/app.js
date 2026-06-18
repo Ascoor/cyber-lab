@@ -100,6 +100,7 @@ async function runNmapBasic(targetId) {
       body: JSON.stringify({ target_id: targetId }),
     });
     renderNmapResult(result);
+    await loadScanHistory();
   } catch (error) {
     container.textContent = `Error: ${error.message}`;
   }
@@ -130,9 +131,62 @@ function renderTargets(targets) {
   }).join('');
 }
 
+
+async function loadScanHistory() {
+  const body = document.getElementById('scanHistoryTableBody');
+  if (body) body.innerHTML = '<tr><td colspan="10">Loading...</td></tr>';
+  try {
+    const data = await requestJson('/scans');
+    renderScanHistory(data.scans || []);
+  } catch (error) {
+    if (body) body.innerHTML = `<tr><td colspan="10">فشل تحميل سجل الفحوصات: ${escapeHtml(error.message)}</td></tr>`;
+  }
+}
+
+function renderScanHistory(scans) {
+  const body = document.getElementById('scanHistoryTableBody');
+  if (!scans.length) {
+    body.innerHTML = '<tr><td colspan="10">لا توجد فحوصات.</td></tr>';
+    return;
+  }
+  body.innerHTML = scans.map((scan) => {
+    const success = Boolean(scan.success);
+    const statusClass = scan.status === 'completed' ? 'ok' : 'no';
+    return `<tr>
+      <td>${escapeHtml(scan.scan_id || scan.id)}</td>
+      <td>${escapeHtml(scan.scan_type)}</td>
+      <td>${escapeHtml(scan.target)}</td>
+      <td><span class="badge ${success ? 'ok' : 'no'}">${success}</span></td>
+      <td><span class="badge ${statusClass}">${escapeHtml(scan.status)}</span></td>
+      <td class="summary-cell">${escapeHtml(scan.summary || '')}</td>
+      <td>${escapeHtml(scan.started_at || '')}</td>
+      <td>${escapeHtml(scan.finished_at || '')}</td>
+      <td>${escapeHtml(scan.report_file || '')}</td>
+      <td><button class="btn primary" type="button" onclick="viewScanReport(${Number(scan.scan_id || scan.id)})">View Report</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function viewScanReport(scanId) {
+  const viewer = document.getElementById('reportViewer');
+  viewer.textContent = `Loading report for scan_id ${scanId}...`;
+  try {
+    const data = await requestJson(`/scans/${scanId}/report`);
+    renderScanReport(data.report || data);
+  } catch (error) {
+    viewer.textContent = `Error: ${error.message}`;
+  }
+}
+
+function renderScanReport(report) {
+  const viewer = document.getElementById('reportViewer');
+  viewer.innerHTML = `<pre class="report-json">${escapeHtml(JSON.stringify(report, null, 2))}</pre>`;
+}
+
 function renderNmapResult(result) {
   const container = document.getElementById('nmapResult');
   container.innerHTML = `<div class="result-grid">
+    <div><strong>scan_id</strong><pre>${escapeHtml(result.scan_id)}</pre></div>
     <div><strong>success</strong><pre>${escapeHtml(result.success)}</pre></div>
     <div><strong>target</strong><pre>${escapeHtml(result.target)}</pre></div>
     <div><strong>command_used</strong><pre>${escapeHtml((result.command_used || []).join(' '))}</pre></div>
@@ -152,4 +206,5 @@ document.getElementById('targetForm').addEventListener('submit', (event) => {
 document.addEventListener('DOMContentLoaded', () => {
   checkHealth();
   loadTargets();
+  loadScanHistory();
 });

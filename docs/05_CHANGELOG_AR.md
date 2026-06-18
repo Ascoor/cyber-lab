@@ -1,5 +1,17 @@
 # سجل التغييرات
 
+## 0.5.0 - Scan History + Reports Viewer
+
+- إضافة جدول scans في SQLite.
+- تسجيل فحوصات Nmap Basic في قاعدة البيانات.
+- إضافة GET /scans.
+- إضافة GET /scans/{scan_id}.
+- إضافة GET /scans/{scan_id}/report.
+- إضافة Scan History إلى الواجهة.
+- إضافة Report Viewer إلى الواجهة.
+- عدم تغيير قواعد Nmap أو قبول flags/options.
+
+
 ## 0.4.0 - Admin Web UI
 
 - إضافة واجهة إدارة بسيطة.

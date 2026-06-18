@@ -1,20 +1,24 @@
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.app.database import (
+    create_scan_record,
     create_target,
     delete_target,
+    get_scan_record,
+    get_scan_report_by_id,
     get_target,
     init_db,
+    list_scan_records,
     list_targets,
     update_target_authorization,
 )
 from backend.app.models import NmapBasicScanRequest, TargetAuthorizationUpdate, TargetCreate
-from backend.app.modules.nmap_scan import run_basic_nmap_scan_for_target
+from backend.app.modules.nmap_scan import run_basic_nmap_scan_for_target, write_report
 from backend.app.modules.target_validation import validate_target_input
 
 
@@ -23,7 +27,7 @@ FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend" / "simple_ui"
 app = FastAPI(
     title="Cyber Lab Control Panel",
     description="Local defensive cybersecurity testing dashboard for authorized assets only.",
-    version="0.4.0",
+    version="0.5.0",
 )
 
 app.add_middleware(
@@ -133,7 +137,45 @@ def run_nmap_basic_scan_endpoint(payload: NmapBasicScanRequest):
     if not scan_result["success"] and not scan_result["command_used"]:
         raise HTTPException(status_code=400, detail=scan_result["stderr"])
 
+    scan_record = create_scan_record(
+        target_id=scan_result.get("target_id"),
+        target=scan_result.get("target") or target["target"],
+        target_type=scan_result.get("target_type"),
+        scan_type=scan_result.get("scan_type") or "nmap_basic",
+        status="completed" if scan_result.get("success") else "failed",
+        success=bool(scan_result.get("success")),
+        report_file=scan_result.get("report_file"),
+        summary=scan_result.get("summary"),
+        started_at=scan_result.get("started_at"),
+        finished_at=scan_result.get("finished_at"),
+    )
+    scan_result["scan_id"] = scan_record["id"]
+    scan_result["status"] = scan_record["status"]
+    if scan_result.get("report_file"):
+        write_report(scan_result)
+
     return scan_result
+
+
+@app.get("/scans")
+def list_scans_endpoint(limit: int = Query(default=50, ge=1, le=200)):
+    return {"success": True, "scans": list_scan_records(limit)}
+
+
+@app.get("/scans/{scan_id}")
+def get_scan_endpoint(scan_id: int):
+    scan = get_scan_record(scan_id)
+    if scan is None:
+        raise HTTPException(status_code=404, detail="Scan not found.")
+    return {"success": True, "scan": scan}
+
+
+@app.get("/scans/{scan_id}/report")
+def get_scan_report_endpoint(scan_id: int):
+    report = get_scan_report_by_id(scan_id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="Scan report not found.")
+    return {"success": True, "scan_id": scan_id, "report": report}
 
 app.mount("/ui", StaticFiles(directory=FRONTEND_DIR), name="simple_ui")
 

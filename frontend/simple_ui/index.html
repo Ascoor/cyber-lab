@@ -9,7 +9,7 @@
 <body>
   <header class="hero card">
     <div>
-      <p class="eyebrow">Admin Web UI - 0.4.0</p>
+      <p class="eyebrow">Admin Web UI - 0.5.0</p>
       <h1>Cyber Lab Control Panel</h1>
       <p class="legal-warning">استخدم هذه الأداة فقط على أهداف تملكها أو لديك تصريح مكتوب لاختبارها.</p>
     </div>
@@ -68,6 +68,30 @@
     <section class="card full-span">
       <h2>Nmap Result</h2>
       <div id="nmapResult" class="result-box">شغل Nmap Basic من جدول الأهداف المصرح بها فقط.</div>
+    </section>
+
+    <section class="card full-span">
+      <div class="section-heading">
+        <h2>Scan History</h2>
+        <button class="btn secondary" type="button" onclick="loadScanHistory()">Refresh Scan History</button>
+      </div>
+      <div class="table-wrap scan-history-wrap">
+        <table class="scan-history-table">
+          <thead>
+            <tr>
+              <th>scan_id</th><th>scan_type</th><th>target</th><th>success</th><th>status</th><th>summary</th><th>started_at</th><th>finished_at</th><th>report_file</th><th>actions</th>
+            </tr>
+          </thead>
+          <tbody id="scanHistoryTableBody">
+            <tr><td colspan="10">لا توجد فحوصات بعد.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card full-span">
+      <h2>Report Viewer</h2>
+      <div id="reportViewer" class="result-box report-viewer">اختر View Report من Scan History لعرض التقرير.</div>
     </section>
   </main>
 
