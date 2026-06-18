@@ -32,7 +32,7 @@ FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend" / "simple_ui"
 app = FastAPI(
     title="Cyber Lab Control Panel",
     description="Local defensive cybersecurity testing dashboard for authorized assets only.",
-    version="0.6.0",
+    version="0.6.1",
 )
 
 app.add_middleware(

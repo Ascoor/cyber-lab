@@ -76,3 +76,8 @@ textarea.output { min-height: 220px; direction: ltr; text-align: left; }
 .link-list { margin: 8px 0 12px; padding-left: 24px; direction: ltr; text-align: left; }
 .link-list a { color: #93c5fd; font-weight: 800; }
 .link-list a:hover { color: #bfdbfe; }
+.result-section { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: rgba(2, 6, 23, .35); }
+.result-section h3 { margin: 0 0 10px; color: #bfdbfe; }
+.captures-table { min-width: 900px; margin-top: 12px; }
+.captures-table a { color: #93c5fd; font-weight: 800; }
+.empty-note { color: var(--muted); margin: 8px 0 0; }
