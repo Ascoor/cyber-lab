@@ -54,3 +54,16 @@
 
 الخطوة التالية المقترحة:
 - إضافة إعدادات اختيارية آمنة عبر environment variables لتكامل RDAP/WHOIS API رسمي عند الحاجة، مع rate limiting وتوثيق واضح.
+
+## حالة 0.6.1 - Archive Fetch Lite
+
+تم إنجاز مرحلة Archive Fetch Lite لموديول Domain Archive Intelligence:
+
+- إضافة جلب RDAP JSON summary من مصدر عام منظم وبمهلة قصيرة.
+- إضافة جلب Wayback CDX lite summary بحد أقصى 20 capture.
+- تحديث تقرير JSON ليشمل `current_dns` و`rdap_summary` و`wayback_summary` و`source_links`.
+- تحديث واجهة Admin Web UI لعرض RDAP وWayback captures بوضوح مع روابط قابلة للضغط.
+- الإبقاء على `crt.sh` كرابط فقط بدون جلب في هذه المرحلة.
+- استمرار endpoint `POST /scans/domain/archive` في قبول `target_id` فقط.
+
+الخطوة التالية المقترحة: تحسين التحليلات الدفاعية داخل التقرير مثل تصنيف أنواع الملفات التاريخية وتلخيص تغيّر سجلات RDAP بدون إضافة scraping أو enumeration.

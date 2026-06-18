@@ -118,3 +118,13 @@
   "report_file": "reports/domain_archive/target_4_example.com_2026-06-18T120000_000000Z.json"
 }
 ```
+
+## تحديث 0.6.1 لتقرير domain_archive
+
+يجب أن يحتوي تقرير `domain_archive` على الحقول التالية ضمن ملف JSON المحفوظ:
+
+- `current_dns`
+- `rdap_summary`
+- `wayback_summary`
+- `source_links`
+- `report_file`

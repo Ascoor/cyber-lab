@@ -67,3 +67,11 @@
 - إضافة روابط Wayback وcrt.sh وRDAP ومصادر WHOIS/DNS History.
 - حفظ تقارير داخل `reports/domain_archive/`.
 - عدم استخدام scraping أو shell أو flags.
+
+## 0.6.1 - Archive Fetch Lite
+
+- إضافة RDAP summary.
+- إضافة Wayback CDX lite summary.
+- عرض captures من Wayback في الواجهة.
+- الإبقاء على crt.sh كرابط فقط.
+- لا scraping ولا shell ولا wordlists.

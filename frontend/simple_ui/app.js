@@ -201,9 +201,28 @@ function renderScanReport(report) {
   viewer.innerHTML = `<pre class="report-json">${escapeHtml(JSON.stringify(report, null, 2))}</pre>`;
 }
 
+function renderWaybackCapturesTable(captures) {
+  if (!captures || !captures.length) {
+    return '<p class="empty-note">No Wayback captures returned in lite query.</p>';
+  }
+  const rows = captures.map((capture) => `<tr>
+    <td>${escapeHtml(capture.timestamp)}</td>
+    <td><a href="${escapeHtml(capture.original)}" target="_blank" rel="noopener noreferrer">${escapeHtml(capture.original)}</a></td>
+    <td>${escapeHtml(capture.statuscode)}</td>
+    <td>${escapeHtml(capture.mimetype)}</td>
+    <td><a href="${escapeHtml(capture.snapshot_url)}" target="_blank" rel="noopener noreferrer">snapshot</a></td>
+  </tr>`).join('');
+  return `<div class="table-wrap"><table class="captures-table">
+    <thead><tr><th>timestamp</th><th>original</th><th>statuscode</th><th>mimetype</th><th>snapshot link</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
 function renderDomainArchiveResult(result) {
   const container = document.getElementById('domainArchiveResult');
   const links = result.source_links || {};
+  const rdap = result.rdap_summary || null;
+  const wayback = result.wayback_summary || null;
   const linkItems = [
     ['Wayback', links.wayback_url],
     ['crt.sh', links.crtsh_url],
@@ -220,11 +239,12 @@ function renderDomainArchiveResult(result) {
     <div><strong>domain</strong><pre>${escapeHtml(result.domain)}</pre></div>
     <div><strong>report_file</strong><pre>${escapeHtml(result.report_file)}</pre></div>
     <div class="wide"><strong>summary</strong><pre>${escapeHtml(result.summary || '')}</pre></div>
+    <div class="wide result-section"><h3>RDAP Summary</h3><pre>${escapeHtml(JSON.stringify(rdap, null, 2))}</pre></div>
+    <div class="wide result-section"><h3>Wayback CDX Lite Summary</h3><pre>${escapeHtml(JSON.stringify(wayback, null, 2))}</pre>${renderWaybackCapturesTable(wayback?.captures || [])}</div>
     <div class="wide"><strong>current_dns</strong><pre>${escapeHtml(JSON.stringify(result.current_dns || null, null, 2))}</pre></div>
     <div class="wide"><strong>source_links</strong><ul class="link-list">${linkItems}</ul><pre>${escapeHtml(JSON.stringify(links, null, 2))}</pre></div>
   </div>`;
 }
-
 function renderNmapResult(result) {
   const container = document.getElementById('nmapResult');
   container.innerHTML = `<div class="result-grid">
