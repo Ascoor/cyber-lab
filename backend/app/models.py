@@ -17,3 +17,10 @@ class TargetCreate(BaseModel):
 
 class TargetAuthorizationUpdate(BaseModel):
     authorized: bool
+
+
+class NmapBasicScanRequest(BaseModel):
+    target_id: int
+
+    class Config:
+        extra = "forbid"

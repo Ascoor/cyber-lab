@@ -231,3 +231,73 @@ curl -X POST http://localhost:8000/targets \
   -H "Content-Type: application/json" \
   -d '{"name":"Bad Wildcard","target":"*.example.com","authorized":true,"scope_notes":"Should be rejected"}'
 ```
+
+## Nmap Basic Scan - المرحلة 2
+
+تمت إضافة فحص Nmap Basic محدود ودفاعي في الإصدار `0.3.0`. هذا الفحص مرتبط مباشرةً بـ Target Management ولا يقبل هدفًا مباشرًا من المستخدم.
+
+### قواعد الفحص
+
+- endpoint الفحص يقبل `target_id` فقط عبر `POST /scans/nmap/basic`.
+- يجب أن يكون الهدف موجودًا مسبقًا في SQLite داخل `data/cyber_lab.db`.
+- يجب أن تكون قيمة `authorized=true` قبل تشغيل Nmap.
+- لا يتم قبول أي `flags` أو `options` أو target مباشر داخل request الفحص.
+- الأمر المستخدم ثابت فقط:
+
+```bash
+nmap -sV -T3 --top-ports 100 <target>
+```
+
+- التقارير تحفظ داخل:
+
+```text
+reports/nmap_basic/
+```
+
+### أمثلة curl للمرحلة 2
+
+إنشاء target مصرح:
+
+```bash
+curl -X POST http://localhost:8000/targets \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Localhost Nmap","target":"127.0.0.1","authorized":true,"scope_notes":"Localhost Nmap test"}'
+```
+
+تشغيل Nmap باستخدام `target_id` فقط:
+
+```bash
+curl -X POST http://localhost:8000/scans/nmap/basic \
+  -H "Content-Type: application/json" \
+  -d '{"target_id":1}'
+```
+
+تجربة target غير موجود:
+
+```bash
+curl -X POST http://localhost:8000/scans/nmap/basic \
+  -H "Content-Type: application/json" \
+  -d '{"target_id":99999}'
+```
+
+إنشاء target موجود لكنه غير مصرح:
+
+```bash
+curl -X POST http://localhost:8000/targets \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Unauthorized Localhost","target":"127.0.0.1","authorized":false,"scope_notes":"Should be blocked"}'
+```
+
+تجربة فحص target غير مصرح:
+
+```bash
+curl -X POST http://localhost:8000/scans/nmap/basic \
+  -H "Content-Type: application/json" \
+  -d '{"target_id":2}'
+```
+
+عرض مكان التقارير:
+
+```bash
+find reports/nmap_basic -maxdepth 1 -type f
+```

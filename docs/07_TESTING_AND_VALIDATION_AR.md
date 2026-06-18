@@ -143,3 +143,65 @@ curl -X PATCH http://localhost:8000/targets/1/authorization \
 ```bash
 curl -X DELETE http://localhost:8000/targets/1
 ```
+
+## اختبار المرحلة 2: Nmap Basic Scan
+
+### فحص Python syntax
+```bash
+python3 -m compileall backend/app
+```
+
+### فحص عدم وجود أوامر خطرة
+```bash
+rg "shell=True|os.system|eval|exec" backend/app || true
+```
+
+### تشغيل السيرفر
+```bash
+uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
+```
+
+### فحص health
+```bash
+curl http://localhost:8000/health
+```
+
+### إنشاء target مصرح
+```bash
+curl -X POST http://localhost:8000/targets \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Localhost Nmap","target":"127.0.0.1","authorized":true,"scope_notes":"Localhost Nmap test"}'
+```
+
+### تشغيل Nmap على target_id
+```bash
+curl -X POST http://localhost:8000/scans/nmap/basic \
+  -H "Content-Type: application/json" \
+  -d '{"target_id":1}'
+```
+
+### إنشاء target غير مصرح
+```bash
+curl -X POST http://localhost:8000/targets \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Unauthorized Localhost","target":"127.0.0.1","authorized":false,"scope_notes":"Should be blocked"}'
+```
+
+### تجربة Nmap على target غير مصرح
+```bash
+curl -X POST http://localhost:8000/scans/nmap/basic \
+  -H "Content-Type: application/json" \
+  -d '{"target_id":2}'
+```
+
+### تجربة target_id غير موجود
+```bash
+curl -X POST http://localhost:8000/scans/nmap/basic \
+  -H "Content-Type: application/json" \
+  -d '{"target_id":99999}'
+```
+
+### التحقق من التقارير
+```bash
+find reports/nmap_basic -maxdepth 1 -type f
+```
