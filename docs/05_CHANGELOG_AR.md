@@ -1,5 +1,13 @@
 # سجل التغييرات
 
+## 0.4.0 - Admin Web UI
+
+- إضافة واجهة إدارة بسيطة.
+- عرض وإضافة وحذف الأهداف.
+- تغيير authorized من الواجهة.
+- تشغيل Nmap Basic من الواجهة على target_id فقط.
+- عرض نتيجة الفحص والتقرير.
+
 ## 0.3.0 - Nmap Basic Scan
 
 - إضافة endpoint `POST /scans/nmap/basic`.

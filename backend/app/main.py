@@ -1,5 +1,9 @@
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from backend.app.database import (
     create_target,
@@ -13,10 +17,13 @@ from backend.app.models import NmapBasicScanRequest, TargetAuthorizationUpdate, 
 from backend.app.modules.nmap_scan import run_basic_nmap_scan_for_target
 from backend.app.modules.target_validation import validate_target_input
 
+
+FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend" / "simple_ui"
+
 app = FastAPI(
     title="Cyber Lab Control Panel",
     description="Local defensive cybersecurity testing dashboard for authorized assets only.",
-    version="0.3.0",
+    version="0.4.0",
 )
 
 app.add_middleware(
@@ -31,6 +38,11 @@ app.add_middleware(
 @app.on_event("startup")
 def startup() -> None:
     init_db()
+
+
+@app.get("/ui", include_in_schema=False)
+def serve_ui_index():
+    return FileResponse(FRONTEND_DIR / "index.html")
 
 
 @app.get("/")
@@ -103,6 +115,7 @@ def delete_target_endpoint(target_id: int):
         raise HTTPException(status_code=404, detail="Target not found.")
     return {"success": True}
 
+
 @app.post("/scans/nmap/basic")
 def run_nmap_basic_scan_endpoint(payload: NmapBasicScanRequest):
     target = get_target(payload.target_id)
@@ -121,4 +134,6 @@ def run_nmap_basic_scan_endpoint(payload: NmapBasicScanRequest):
         raise HTTPException(status_code=400, detail=scan_result["stderr"])
 
     return scan_result
+
+app.mount("/ui", StaticFiles(directory=FRONTEND_DIR), name="simple_ui")
 
