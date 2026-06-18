@@ -36,6 +36,27 @@ def _write_report(report: dict[str, Any]) -> str:
     return str(report_path)
 
 
+def write_report(report: dict[str, Any]) -> str:
+    """Persist an updated scan report without changing the original location."""
+    report_file = report.get("report_file")
+    if report_file:
+        report_path = Path(report_file)
+        if report_path.is_relative_to(REPORT_DIR):
+            report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+            return str(report_path)
+    return _write_report(report)
+
+
+def _summarize_nmap_result(success: bool, stdout: str, stderr: str) -> str:
+    if not success:
+        return (stderr or "Nmap Basic scan failed.").strip()[:500]
+    if "/open" in stdout or " open " in stdout:
+        return "Nmap Basic completed. Open ports detected."
+    if "Host is up" in stdout:
+        return "Host is up. Nmap Basic completed. No open ports detected in top 100 ports."
+    return "Nmap Basic completed. No open ports detected in top 100 ports."
+
+
 def run_basic_nmap_scan_for_target(target_record: dict) -> dict:
     """Run a fixed Nmap Basic scan for one stored target record.
 
@@ -54,6 +75,7 @@ def run_basic_nmap_scan_for_target(target_record: dict) -> dict:
             "scan_type": SCAN_TYPE,
             "command_used": [],
             "report_file": None,
+            "summary": "Invalid target_record: expected a dictionary loaded from Target Management.",
             "stdout": "",
             "stderr": "Invalid target_record: expected a dictionary loaded from Target Management.",
             "started_at": started_at,
@@ -75,6 +97,7 @@ def run_basic_nmap_scan_for_target(target_record: dict) -> dict:
             "scan_type": SCAN_TYPE,
             "command_used": [],
             "report_file": None,
+            "summary": validation["error"],
             "stdout": "",
             "stderr": validation["error"],
             "started_at": started_at,
@@ -118,6 +141,7 @@ def run_basic_nmap_scan_for_target(target_record: dict) -> dict:
         "scan_type": SCAN_TYPE,
         "command_used": command,
         "report_file": None,
+        "summary": _summarize_nmap_result(success, stdout, stderr),
         "stdout": stdout,
         "stderr": stderr,
         "started_at": started_at,

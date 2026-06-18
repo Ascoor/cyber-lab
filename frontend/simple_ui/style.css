@@ -66,3 +66,10 @@ textarea.output { min-height: 220px; direction: ltr; text-align: left; }
   .layout, .target-form, .result-grid { grid-template-columns: 1fr; }
   .full-width, .full-span, .result-grid .wide { grid-column: auto; }
 }
+.scan-history-wrap { margin-top: 12px; }
+.scan-history-table { min-width: 1280px; }
+.scan-history-table .summary-cell { max-width: 360px; white-space: normal; line-height: 1.5; }
+.report-viewer { min-height: 260px; }
+.report-json { margin: 0; padding: 14px; border-radius: 10px; background: #020617; color: #dbeafe; overflow: auto; direction: ltr; text-align: left; white-space: pre; }
+.badge.ok { border: 1px solid rgba(22, 163, 74, .55); }
+.badge.no { border: 1px solid rgba(220, 38, 38, .55); }
