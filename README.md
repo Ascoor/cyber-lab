@@ -13,8 +13,9 @@ Cyber Lab Control Panel هو مشروع محلي داخل WSL2 Ubuntu لتنظي
 - endpoint `/health` موجود للتحقق السريع.
 - نظام Target Management مضاف لإدارة الأهداف محليًا قبل أي فحص.
 - SQLite يستخدم ملف `data/cyber_lab.db` محليًا ويُنشئ جدول `targets` تلقائيًا عند تشغيل التطبيق.
-- ملفات موديولات الفحص موجودة مبدئيًا داخل `backend/app/modules/` دون إضافة فحوصات جديدة في مرحلة Target Management.
-- ملف `backend/app/modules/nmap_scan.py` موجود لكنه فارغ في المراجعة الحالية، لذلك لا يوجد تنفيذ Nmap فعلي موثق بعد.
+- ملفات موديولات الفحص موجودة داخل `backend/app/modules/`، ويعمل منها حاليًا Nmap Basic فقط وفق قواعد محدودة.
+- ملف `backend/app/modules/nmap_scan.py` ينفذ Nmap Basic بأمر ثابت عبر `target_id` للأهداف المصرح بها فقط.
+- واجهة Admin Web UI متاحة عبر `/ui` لإدارة الأهداف وتشغيل Nmap Basic من الجدول فقط.
 - ملف `docker-compose.yml` فارغ حاليًا، وسيتم ضبطه في مرحلة Docker Compose لاحقًا.
 
 ## طريقة التشغيل الحالية
@@ -106,7 +107,7 @@ curl http://localhost:8000/health
 4. المرحلة 3: Web Security Baseline.
 5. المرحلة 4: SSL/TLS & Headers.
 6. المرحلة 5: Reports.
-7. المرحلة 6: Simple UI.
+7. المرحلة 6: Simple UI / Admin Web UI.
 8. المرحلة 7: Job Queue.
 9. المرحلة 8: MobSF Integration.
 10. المرحلة 9: Audit Log.
@@ -301,3 +302,29 @@ curl -X POST http://localhost:8000/scans/nmap/basic \
 ```bash
 find reports/nmap_basic -maxdepth 1 -type f
 ```
+
+## 0.4.0 - Admin Web UI
+
+تمت إضافة واجهة إدارة بسيطة داخل `frontend/simple_ui/` ويتم تقديمها مباشرة من FastAPI عبر المسار:
+
+```text
+http://localhost:8000/ui
+```
+
+### ما توفره الواجهة
+
+- عرض حالة الـ Backend عبر زر **Check Health** الذي يستدعي `/health`.
+- إضافة الأهداف من الواجهة باستخدام الحقول: `name` و`target` و`authorized` و`scope_notes`.
+- عرض الأهداف المخزنة في جدول واضح مع `id` و`name` و`target` و`target_type` و`authorized` و`scope_notes` و`created_at`.
+- تغيير حالة `authorized` من زر **Toggle Authorized**.
+- حذف target بعد تأكيد المستخدم عبر `confirm`.
+- تشغيل **Nmap Basic** من زر **Run Nmap Basic** على `target_id` الموجود في الجدول فقط.
+- عرض نتيجة الفحص، بما في ذلك `target` و`command_used` و`report_file` و`stdout` و`stderr`.
+
+### قيود أمان الواجهة
+
+- الواجهة لا تقبل أي `flags` أو `options` لفحص Nmap.
+- لا يوجد input مباشر لتشغيل Nmap على target جديد أو نص حر.
+- تشغيل Nmap يتم فقط عبر `target_id` من الأهداف المخزنة.
+- زر **Run Nmap Basic** يكون معطلًا عندما يكون `authorized=false`.
+- قواعد Nmap الحالية لم تتغير: الأمر ثابت ومحدود، ولا يوجد استخدام لـ `shell=True`.

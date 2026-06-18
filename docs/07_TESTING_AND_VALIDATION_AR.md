@@ -39,35 +39,41 @@ curl http://localhost:8000/health
 ```
 
 ## اختبار Nmap على 127.0.0.1
-حاليًا ملف `backend/app/modules/nmap_scan.py` فارغ في المراجعة الحالية، لذلك لا يوجد endpoint موثق لفحص Nmap داخل الكود الحالي. عند تنفيذ المرحلة 2، يجب أن يكون الاختبار على هدف محلي واحد ومصرح مثل:
+يجب إنشاء هدف مصرح أولًا عبر Target Management، ثم تشغيل Nmap Basic باستخدام `target_id` فقط:
+
+```bash
+curl -X POST http://localhost:8000/targets \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Localhost Nmap","target":"127.0.0.1","authorized":true,"scope_notes":"Localhost only"}'
+```
 
 ```bash
 curl -X POST http://localhost:8000/scans/nmap/basic \
   -H "Content-Type: application/json" \
-  -d '{"target":"127.0.0.1","authorized":true}'
+  -d '{"target_id":1}'
 ```
 
 ## اختبار رفض authorized=false
-عند تنفيذ أي endpoint فحص، يجب أن يرفض الطلب التالي قبل تشغيل أي أداة خارجية:
+يجب أن يرفض endpoint الفحص أي هدف مخزن غير مصرح قبل تشغيل Nmap:
 
 ```bash
 curl -X POST http://localhost:8000/scans/nmap/basic \
   -H "Content-Type: application/json" \
-  -d '{"target":"127.0.0.1","authorized":false}'
+  -d '{"target_id":2}'
 ```
 
-النتيجة المتوقعة لاحقًا: HTTP 400 أو 403 مع رسالة توضح أن التصريح مطلوب.
+النتيجة المتوقعة: HTTP 403 مع رسالة توضح أن الهدف غير مصرح للفحص.
 
 ## اختبار رفض CIDR/ranges
-عند تنفيذ أي endpoint فحص في المراحل الأولى، يجب رفض CIDR مثل:
+يتم رفض CIDR/ranges عند إضافة الهدف إلى Target Management قبل أن يصل إلى أي فحص:
 
 ```bash
-curl -X POST http://localhost:8000/scans/nmap/basic \
+curl -X POST http://localhost:8000/targets \
   -H "Content-Type: application/json" \
-  -d '{"target":"192.168.1.0/24","authorized":true}'
+  -d '{"name":"Bad CIDR","target":"192.168.1.0/24","authorized":true}'
 ```
 
-النتيجة المتوقعة لاحقًا: رفض الطلب وعدم تشغيل Nmap.
+النتيجة المتوقعة: HTTP 400 وعدم تخزين الهدف أو تشغيل Nmap.
 
 ## فحص Python syntax
 ```bash
@@ -204,4 +210,62 @@ curl -X POST http://localhost:8000/scans/nmap/basic \
 ### التحقق من التقارير
 ```bash
 find reports/nmap_basic -maxdepth 1 -type f
+```
+
+## اختبار المرحلة 0.4.0: Admin Web UI
+
+### فتح واجهة الإدارة
+```bash
+curl http://localhost:8000/ui
+```
+النتيجة المتوقعة: إرجاع صفحة HTML تحتوي على `Cyber Lab Control Panel`.
+
+### Check Health من الواجهة
+افتح المتصفح على:
+
+```text
+http://localhost:8000/ui
+```
+ثم اضغط زر **Check Health**.
+
+النتيجة المتوقعة: ظهور نتيجة `/health` وتحديث حالة Backend إلى `ok`.
+
+### إضافة Target من الواجهة
+من قسم **Add Target** أدخل بيانات مثل:
+
+```text
+name: Localhost UI
+ target: 127.0.0.1
+ authorized: true
+ scope_notes: Local UI validation
+```
+
+ثم اضغط **Add Target**.
+
+النتيجة المتوقعة: ظهور رسالة نجاح وتحديث جدول الأهداف تلقائيًا.
+
+### التأكد من ظهوره في الجدول
+بعد الإضافة، يجب أن يظهر الهدف في جدول **Targets** مع `id` و`target_type` و`authorized` و`created_at`.
+
+### تغيير authorized
+اضغط زر **Toggle Authorized** للهدف.
+
+النتيجة المتوقعة: تتغير قيمة `authorized` في الجدول بعد إعادة التحميل.
+
+### تشغيل Nmap على authorized target
+تأكد أن الهدف `authorized=true` ثم اضغط **Run Nmap Basic**.
+
+النتيجة المتوقعة: ظهور حالة loading ثم نتيجة الفحص في قسم **Nmap Result**.
+
+### التأكد من ظهور report_file
+بعد انتهاء الفحص يجب أن يظهر حقل `report_file` ضمن نتيجة Nmap.
+
+### التأكد من منع Nmap على target غير مصرح
+اجعل الهدف `authorized=false` من زر **Toggle Authorized**.
+
+النتيجة المتوقعة: زر **Run Nmap Basic** يكون disabled ولا يمكن تشغيل Nmap من الواجهة على هذا الهدف.
+
+### فحص عدم وجود shell=True أو أوامر خطرة
+```bash
+rg "shell=True|os.system|eval|exec" backend/app || true
 ```
