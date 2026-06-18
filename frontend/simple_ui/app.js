@@ -106,6 +106,21 @@ async function runNmapBasic(targetId) {
   }
 }
 
+async function runDomainArchive(targetId) {
+  const container = document.getElementById('domainArchiveResult');
+  container.textContent = 'Loading... تشغيل Domain Archive على target_id فقط.';
+  try {
+    const result = await requestJson('/scans/domain/archive', {
+      method: 'POST',
+      body: JSON.stringify({ target_id: targetId }),
+    });
+    renderDomainArchiveResult(result);
+    await loadScanHistory();
+  } catch (error) {
+    container.textContent = `Error: ${error.message}`;
+  }
+}
+
 function renderTargets(targets) {
   const body = document.getElementById('targetsTableBody');
   if (!targets.length) {
@@ -114,6 +129,8 @@ function renderTargets(targets) {
   }
   body.innerHTML = targets.map((target) => {
     const authorized = Boolean(target.authorized);
+    const domainArchiveAllowed = authorized && ['domain', 'url'].includes(target.target_type);
+    const domainArchiveTitle = domainArchiveAllowed ? '' : 'disabled title="requires authorized domain/url target"';
     return `<tr>
       <td>${target.id}</td>
       <td>${escapeHtml(target.name)}</td>
@@ -126,6 +143,7 @@ function renderTargets(targets) {
         <button class="btn warning" onclick="toggleAuthorization(${target.id}, ${authorized})">Toggle Authorized</button>
         <button class="btn danger" onclick="deleteTarget(${target.id})">Delete</button>
         <button class="btn primary" ${authorized ? '' : 'disabled title="authorized=false"'} onclick="runNmapBasic(${target.id})">Run Nmap Basic</button>
+        <button class="btn secondary" ${domainArchiveTitle} onclick="runDomainArchive(${target.id})">Domain Archive</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -181,6 +199,30 @@ async function viewScanReport(scanId) {
 function renderScanReport(report) {
   const viewer = document.getElementById('reportViewer');
   viewer.innerHTML = `<pre class="report-json">${escapeHtml(JSON.stringify(report, null, 2))}</pre>`;
+}
+
+function renderDomainArchiveResult(result) {
+  const container = document.getElementById('domainArchiveResult');
+  const links = result.source_links || {};
+  const linkItems = [
+    ['Wayback', links.wayback_url],
+    ['crt.sh', links.crtsh_url],
+    ['RDAP', links.rdap_url],
+    ['WhoisFreaks DNS History', links.whoisfreaks_dns_history_url],
+    ['WhoisFreaks WHOIS History', links.whoisfreaks_whois_history_url],
+  ].filter(([, href]) => href).map(([label, href]) => (
+    `<li><a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a></li>`
+  )).join('');
+
+  container.innerHTML = `<div class="result-grid">
+    <div><strong>scan_id</strong><pre>${escapeHtml(result.scan_id)}</pre></div>
+    <div><strong>success</strong><pre>${escapeHtml(result.success)}</pre></div>
+    <div><strong>domain</strong><pre>${escapeHtml(result.domain)}</pre></div>
+    <div><strong>report_file</strong><pre>${escapeHtml(result.report_file)}</pre></div>
+    <div class="wide"><strong>summary</strong><pre>${escapeHtml(result.summary || '')}</pre></div>
+    <div class="wide"><strong>current_dns</strong><pre>${escapeHtml(JSON.stringify(result.current_dns || null, null, 2))}</pre></div>
+    <div class="wide"><strong>source_links</strong><ul class="link-list">${linkItems}</ul><pre>${escapeHtml(JSON.stringify(links, null, 2))}</pre></div>
+  </div>`;
 }
 
 function renderNmapResult(result) {

@@ -338,3 +338,27 @@ http://localhost:8000/ui
 - تشغيل Nmap يتم فقط عبر `target_id` من الأهداف المخزنة.
 - زر **Run Nmap Basic** يكون معطلًا عندما يكون `authorized=false`.
 - قواعد Nmap الحالية لم تتغير: الأمر ثابت ومحدود، ولا يوجد استخدام لـ `shell=True`.
+
+## 0.6.0 - Domain Archive Intelligence
+
+تمت إضافة موديول دفاعي وقراءة فقط لجمع مؤشرات أرشيفية وعلنية منظمة عن الدومينات من خلال `POST /scans/domain/archive`.
+
+- الفحص يستخدم `target_id` فقط من Target Management ولا يقبل هدفًا مباشرًا من المستخدم.
+- يعمل فقط مع أهداف `domain` و`url` المصرح بها، ويستخرج `hostname` من URL تلقائيًا.
+- يرفض أهداف `ip` و`localhost` برسالة واضحة لأن Domain Archive يحتاج domain/URL.
+- لا يستخدم scraping، ولا brute force، ولا wordlists، ولا قواعد بيانات مسربة، ولا أوامر shell.
+- يحاول DNS الحالي باستخدام `socket.gethostbyname_ex` فقط، وفشل DNS لا يفشل التقرير.
+- يولد روابط يفتحها الباحث يدويًا: Wayback وcrt.sh وRDAP وروابط WHOIS/DNS history من WhoisFreaks، مع ملاحظة عن خدمات WHOIS history المدفوعة.
+- يحفظ تقرير JSON داخل:
+
+```text
+reports/domain_archive/
+```
+
+مثال تشغيل:
+
+```bash
+curl -X POST http://localhost:8000/scans/domain/archive \
+  -H "Content-Type: application/json" \
+  -d '{"target_id":4}'
+```

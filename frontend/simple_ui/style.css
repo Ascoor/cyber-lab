@@ -73,3 +73,6 @@ textarea.output { min-height: 220px; direction: ltr; text-align: left; }
 .report-json { margin: 0; padding: 14px; border-radius: 10px; background: #020617; color: #dbeafe; overflow: auto; direction: ltr; text-align: left; white-space: pre; }
 .badge.ok { border: 1px solid rgba(22, 163, 74, .55); }
 .badge.no { border: 1px solid rgba(220, 38, 38, .55); }
+.link-list { margin: 8px 0 12px; padding-left: 24px; direction: ltr; text-align: left; }
+.link-list a { color: #93c5fd; font-weight: 800; }
+.link-list a:hover { color: #bfdbfe; }
