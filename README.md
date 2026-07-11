@@ -362,3 +362,14 @@ curl -X POST http://localhost:8000/scans/domain/archive \
   -H "Content-Type: application/json" \
   -d '{"target_id":4}'
 ```
+
+## 0.6.1 - Archive Fetch Lite
+
+تم تطوير Domain Archive Intelligence ليجلب ملخصًا خفيفًا وآمنًا من مصادر عامة منظمة عبر `POST /scans/domain/archive` مع استمرار الاعتماد على `target_id` فقط.
+
+- يجلب RDAP JSON summary من `https://rdap.org/domain/{domain}` بمهلة قصيرة وبدون حفظ الخام الكامل عند كبر الحجم.
+- يجلب Wayback CDX lite summary من `https://web.archive.org/cdx` بحد أقصى 20 capture وبدون scraping.
+- لا يستخدم scraping، ولا shell، ولا wordlists.
+- لا ينفذ subdomain enumeration.
+- لا يقبل target مباشر من المستخدم؛ الطلب يبقى بالشكل: `{ "target_id": 4 }`.
+- يبقى `crt.sh` رابطًا فقط ضمن `source_links` في هذه المرحلة ولا يتم الجلب منه.

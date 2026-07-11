@@ -347,3 +347,21 @@ curl -X POST http://localhost:8000/scans/domain/archive \
 1. أنشئ target بقيمة `127.0.0.1` مع `authorized=true`.
 2. شغل نفس endpoint باستخدام `target_id` الخاص به.
 3. تأكد أن الاستجابة `400` وتحتوي الرسالة: `Domain Archive Intelligence requires a domain or URL target.`
+
+## اختبارات 0.6.1 - Archive Fetch Lite
+
+```bash
+python3 -m compileall backend/app
+rg "shell=True|os.system|eval|exec" backend/app || true
+curl http://localhost:8000/health
+curl http://localhost:8000/targets
+curl -X POST http://localhost:8000/scans/domain/archive \
+  -H "Content-Type: application/json" \
+  -d '{"target_id":4}'
+```
+
+يجب التحقق من أن response الخاص بـ `POST /scans/domain/archive` يحتوي على:
+
+- `rdap_summary`
+- `wayback_summary`
+- `source_links`
