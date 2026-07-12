@@ -245,6 +245,25 @@ function renderDomainArchiveResult(result) {
     <div class="wide"><strong>source_links</strong><ul class="link-list">${linkItems}</ul><pre>${escapeHtml(JSON.stringify(links, null, 2))}</pre></div>
   </div>`;
 }
+async function runNetworkDiagnostics() {
+  const container = document.getElementById('networkDiagnosticsResult');
+  container.textContent = 'Loading... فحص اتصال الشبكة بالمصادر الخارجية الثابتة.';
+  try {
+    const result = await requestJson('/diagnostics/network');
+    container.innerHTML = `<div class="result-grid">
+      <div><strong>status</strong><pre>${escapeHtml(result.status)}</pre></div>
+      <div><strong>success</strong><pre>${escapeHtml(result.success)}</pre></div>
+      <div><strong>timeout_seconds</strong><pre>${escapeHtml(result.timeout_seconds)}</pre></div>
+      <div class="wide"><strong>summary</strong><pre>${escapeHtml(result.summary || '')}</pre></div>
+      <div class="wide"><strong>dns_checks</strong><pre>${escapeHtml(JSON.stringify(result.dns_checks || [], null, 2))}</pre></div>
+      <div class="wide"><strong>http_checks</strong><pre>${escapeHtml(JSON.stringify(result.http_checks || [], null, 2))}</pre></div>
+      <div class="wide"><strong>notes</strong><pre>${escapeHtml(JSON.stringify(result.notes || [], null, 2))}</pre></div>
+    </div>`;
+  } catch (error) {
+    container.textContent = `Error: ${error.message}`;
+  }
+}
+
 function renderNmapResult(result) {
   const container = document.getElementById('nmapResult');
   container.innerHTML = `<div class="result-grid">

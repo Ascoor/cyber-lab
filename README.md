@@ -1,13 +1,12 @@
 # Cyber Lab Control Panel
 
-## 0.5.0 - Scan History + Reports Viewer
+## 0.6.2 - Network Connectivity Diagnostics + Documentation Cleanup
 
-- الفحوصات الآن تسجل داخل جدول SQLite جديد باسم `scans`.
-- يمكن عرض سجل الفحوصات من `GET /scans`، ويعرض metadata فقط بدون stdout كامل أو التقرير الخام.
-- يمكن عرض تقرير فحص محفوظ من `GET /scans/{scan_id}/report`.
-- الواجهة `/ui` تعرض الآن قسم `Scan History` وقسم `Report Viewer`.
-- لا تزال Nmap Basic تعمل عبر `target_id` فقط للأهداف المخزنة والمصرح بها.
-- لا توجد flags/options من المستخدم، ولم تتم إضافة أي فحوصات جديدة في هذه المرحلة.
+- إضافة endpoint تشخيصي ثابت `GET /diagnostics/network` للتحقق من اتصال البيئة بمصادر RDAP وWayback المستخدمة في Domain Archive Intelligence.
+- التشخيص لا يقبل target أو URL من المستخدم ولا يشغل shell ولا يحفظ تقرير scan.
+- واجهة `/ui` تعرض قسم Network Connectivity Diagnostics لتسهيل تمييز مشاكل الشبكة عن مشاكل الموديول.
+- تنظيف التوثيق الحالي ليعكس نسخة `0.6.2` وحالة موديول Domain Archive بعد Archive Fetch Lite.
+- لا تزال Nmap Basic وDomain Archive تعملان عبر `target_id` فقط للأهداف المخزنة والمصرح بها.
 
 
 Cyber Lab Control Panel هو مشروع محلي داخل WSL2 Ubuntu لتنظيم فحوصات أمن سيبراني دفاعية ومصرح بها فقط. يعتمد Backend الحالي على FastAPI، ويهدف إلى بناء لوحة تحكم قابلة للتوسع مع توثيق عربي واضح للنطاق، المنهجية، التقارير، والمراجعة المستمرة.
@@ -21,11 +20,12 @@ Cyber Lab Control Panel هو مشروع محلي داخل WSL2 Ubuntu لتنظي
 - Backend يعمل عبر FastAPI.
 - endpoint `/` موجود للتحقق العام.
 - endpoint `/health` موجود للتحقق السريع.
+- endpoint `/diagnostics/network` موجود لتشخيص اتصال البيئة بمصادر RDAP وWayback الثابتة دون فحص أهداف المستخدم.
 - نظام Target Management مضاف لإدارة الأهداف محليًا قبل أي فحص.
 - SQLite يستخدم ملف `data/cyber_lab.db` محليًا ويُنشئ جدول `targets` تلقائيًا عند تشغيل التطبيق.
 - ملفات موديولات الفحص موجودة داخل `backend/app/modules/`، ويعمل منها حاليًا Nmap Basic فقط وفق قواعد محدودة.
 - ملف `backend/app/modules/nmap_scan.py` ينفذ Nmap Basic بأمر ثابت عبر `target_id` للأهداف المصرح بها فقط.
-- واجهة Admin Web UI متاحة عبر `/ui` لإدارة الأهداف وتشغيل Nmap Basic من الجدول فقط.
+- واجهة Admin Web UI متاحة عبر `/ui` لإدارة الأهداف وتشغيل Nmap Basic وDomain Archive من الجدول فقط، وتشغيل تشخيص اتصال الشبكة من زر مستقل.
 - ملف `docker-compose.yml` فارغ حاليًا، وسيتم ضبطه في مرحلة Docker Compose لاحقًا.
 
 ## طريقة التشغيل الحالية

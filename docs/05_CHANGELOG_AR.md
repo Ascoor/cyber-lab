@@ -1,5 +1,15 @@
 # سجل التغييرات
 
+## 0.6.2 - Network Connectivity Diagnostics + Documentation Cleanup
+
+- إضافة endpoint `GET /diagnostics/network` لتشخيص اتصال البيئة بمصادر Domain Archive الخارجية.
+- فحص DNS ثابت لكل من `rdap.org` و`web.archive.org`.
+- فحص HTTP ثابت لـ RDAP وWayback CDX باستخدام `example.com` فقط.
+- إضافة قسم Network Connectivity Diagnostics إلى الواجهة.
+- عدم قبول target أو URL من المستخدم داخل التشخيص.
+- عدم تشغيل shell وعدم حفظ scan record للتشخيص.
+- تنظيف التوثيق لتوضيح حالة النسخة الحالية.
+
 ## 0.5.0 - Scan History + Reports Viewer
 
 - إضافة جدول scans في SQLite.

@@ -9,7 +9,7 @@
 <body>
   <header class="hero card">
     <div>
-      <p class="eyebrow">Admin Web UI - 0.6.1</p>
+      <p class="eyebrow">Admin Web UI - 0.6.2</p>
       <h1>Cyber Lab Control Panel</h1>
       <p class="legal-warning">استخدم هذه الأداة فقط على أهداف تملكها أو لديك تصريح مكتوب لاختبارها.</p>
     </div>
@@ -73,6 +73,14 @@
     <section class="card full-span">
       <h2>Domain Archive Result</h2>
       <div id="domainArchiveResult" class="result-box">شغل Domain Archive من جدول أهداف domain/url المصرح بها فقط.</div>
+    </section>
+
+    <section class="card full-span">
+      <div class="section-heading">
+        <h2>Network Connectivity Diagnostics</h2>
+        <button class="btn secondary" type="button" onclick="runNetworkDiagnostics()">Run Diagnostics</button>
+      </div>
+      <div id="networkDiagnosticsResult" class="result-box">يفحص اتصال البيئة بمصادر RDAP وWayback الثابتة فقط، دون فحص أي هدف مستخدم.</div>
     </section>
 
     <section class="card full-span">

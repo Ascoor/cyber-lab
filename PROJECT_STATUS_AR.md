@@ -67,3 +67,18 @@
 - استمرار endpoint `POST /scans/domain/archive` في قبول `target_id` فقط.
 
 الخطوة التالية المقترحة: تحسين التحليلات الدفاعية داخل التقرير مثل تصنيف أنواع الملفات التاريخية وتلخيص تغيّر سجلات RDAP بدون إضافة scraping أو enumeration.
+
+## حالة 0.6.2 - Network Connectivity Diagnostics + Documentation Cleanup
+
+تمت إضافة تشخيص اتصال شبكي محدود لمساعدة المستخدم على معرفة ما إذا كانت البيئة المحلية قادرة على الوصول إلى مصادر Domain Archive الخارجية.
+
+ما يعمل الآن:
+- endpoint جديد `GET /diagnostics/network`.
+- فحص DNS ثابت لكل من `rdap.org` و`web.archive.org`.
+- فحص HTTP ثابت لكل من RDAP وWayback CDX باستخدام `example.com` فقط.
+- عرض نتيجة التشخيص داخل Admin Web UI.
+- لا يقبل التشخيص أي target أو URL من المستخدم.
+- لا يتم تشغيل shell ولا حفظ scan record لهذا التشخيص.
+- تحديث README وحالة المشروع وسجل التغييرات والقرارات لتوضيح نسخة 0.6.2.
+
+الخطوة التالية المقترحة: توحيد report builder أو إضافة Job Queue قبل توسيع الموديولات.
