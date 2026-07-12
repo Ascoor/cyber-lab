@@ -23,6 +23,7 @@ from backend.app.modules.domain_archive import (
     run_domain_archive_lookup_for_target,
     write_report as write_domain_archive_report,
 )
+from backend.app.modules.network_diagnostics import run_network_connectivity_diagnostics
 from backend.app.modules.nmap_scan import run_basic_nmap_scan_for_target, write_report
 from backend.app.modules.target_validation import validate_target_input
 
@@ -32,7 +33,7 @@ FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend" / "simple_ui"
 app = FastAPI(
     title="Cyber Lab Control Panel",
     description="Local defensive cybersecurity testing dashboard for authorized assets only.",
-    version="0.6.1",
+    version="0.6.2",
 )
 
 app.add_middleware(
@@ -67,6 +68,11 @@ def health_check():
     return {
         "status": "ok",
     }
+
+
+@app.get("/diagnostics/network")
+def network_connectivity_diagnostics_endpoint():
+    return run_network_connectivity_diagnostics()
 
 
 @app.post("/targets")
